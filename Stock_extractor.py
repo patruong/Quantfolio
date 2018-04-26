@@ -20,13 +20,33 @@ path = "C:\\cygwin64\\home\\Patrick\\Quantfolio"
 chdir(path)
 print(getcwd())
 
-ticker_df = pd.read_csv("Russell3000-Tickers.csv")
-tickers = ticker_df["Ticker"]
 
-start = datetime.datetime(2015, 4 ,13)
-end = datetime.datetime(2018,04,13)
+def stock_extractor(tickers, start, end, sleep_time = 1):
+    df_open = pd.DataFrame()
+    df_high = pd.DataFrame()
+    df_low = pd.DataFrame()
+    df_close = pd.DataFrame()
+    df_volume = pd.DataFrame()
     
-company_list = ["GOOG",
+    
+    for i in tickers:
+        f = web.DataReader(i, "iex", start, end)
+        df_open[i] = f.open
+        df_high[i] = f.high
+        df_low[i] = f.low
+        df_close[i] = f.close
+        df_volume[i] = f.volume
+        time.sleep(sleep_time)
+    
+    return df_open, df_high, df_low, df_close, df_volume
+
+if __name__ == "__main__":
+    
+    start = datetime.datetime(2015, 4 ,13)
+    end = datetime.datetime(2018,04,13)
+    
+    # tickers small test set
+    tickers = ["GOOG",
                     "F",
                     "GS",
                     "ABB",
@@ -49,9 +69,9 @@ company_list = ["GOOG",
                     "TGT",
                     "XOM"]
     
-    df = pd.DataFrame()
+    #ticker_df = pd.read_csv("Russell3000-Tickers.csv")
+    #tickers = ticker_df["Ticker"] # takes long time!
     
-    for i in company_list:
-        f = web.DataReader(i, "iex", start, end)
-        df[i] = f.close
-        time.sleep(2)
+    df_open, df_high, df_low, df_close, df_volume = stock_extractor(tickers, start, end)
+
+
