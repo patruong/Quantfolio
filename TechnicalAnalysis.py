@@ -19,7 +19,7 @@ import matplotlib.dates as dates
 ticker = 'TSLA'
 
 start_date='2016-01-01'
-end_date='2018-01-01'
+end_date='2018-07-13'
 start_date = pd.to_datetime(start_date)
 end_date = pd.to_datetime(end_date)
      
@@ -106,9 +106,11 @@ if __name__ == "__main__":
     main_price = pd.DataFrame(df.close, index = df.index)
     main_returns = log_return(main_data)
     
+    
     # MA 
     main_data["MA20"] = main_price.close.rolling(20).mean()
     main_data["MA50"] = main_price.close.rolling(50).mean()
+    main_data["MA200"] = main_price.close.rolling(200).mean()
 
     # RSI 
     main_data["RSI"] = RSI(main_price)
