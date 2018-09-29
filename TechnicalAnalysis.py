@@ -5,13 +5,24 @@ Created on Sun Jul 15 23:30:54 2018
 @author: Patrick
 """
 
+"""
+Tools > Preferences > IPython console > Graphics > Graphics backend > Backend: Automatic / Inline
+
+Note to self:
+C:\Users\Patrick\Anaconda3\lib\site-packages\matplotlib\cbook.py:136: 
+    MatplotlibDeprecationWarning: The finance module has been deprecated 
+    in mpl 2.0 and will be removed in mpl 2.2. Please use the module 
+    mpl_finance instead.
+    warnings.warn(message, mplDeprecation, stacklevel=1) 
+"""
 from iexfinance import get_historical_data
 from datetime import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.dates as dates
+import matplotlib.dates as mdates
 import matplotlib.finance as finplt
+
 
 
 
@@ -36,15 +47,15 @@ def plot_data(df, tick_interval = 40, usePandas = True):
     #Either use pandas
     if usePandas:
         df.plot(x_compat=True)
-        plt.gca().xaxis.set_major_locator(dates.DayLocator(interval = tick_interval))
-        plt.gca().xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d'))
+        plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = tick_interval))
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
         #plt.gca().invert_xaxis()
         plt.gcf().autofmt_xdate(rotation=90, ha="center")
     # or use matplotlib
     else:
         plt.plot(df["date"], df["ratio1"])
-        plt.gca().xaxis.set_major_locator(dates.DayLocator(interval = tick_interval))
-        plt.gca().xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d'))
+        plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval = tick_interval))
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
         #plt.gca().invert_xaxis()
     
     plt.show()
@@ -170,9 +181,54 @@ def plot_ADL(df):
     fig.tight_layout()
 
 
-def plot_OCHL(df, up = "b", down = "r"):
-    fig, ax = plt.subplots()
-    finplt.candlestick2_ochl(ax, df.open, df.close, df.high, df.low, colorup =up, colordown=down)
+def plot_OCHL(df, up = "b", down = "r", grid_on = True):
+    
+
+    #Reset the index to remove Date column from index
+    df_ohlc = df.reset_index()
+    
+    #Naming columns
+    df_ohlc.columns = ["Date","Open","High",'Low',"Close", "Volume"]
+    
+    #Converting dates column to float values
+    df_ohlc['Date'] = df_ohlc['Date'].map(mdates.date2num)
+    
+    #Making plot
+    fig = plt.figure()
+    ax1 = plt.subplot2grid((6,1), (0,0), rowspan=6, colspan=1) #CHECK WHAT IS THIS FUNCTION?
+    ax1.grid(True)
+    #Converts raw mdate numbers to dates
+    ax1.xaxis_date()
+    plt.xlabel("Date")
+    #print(df_ohlc)
+    
+    #Making candlestick plot
+    finplt.candlestick_ohlc(ax1,df_ohlc.values,width=1, colorup='g', colordown='k',alpha=0.75)
+    plt.ylabel("Price")
+    plt.gcf().autofmt_xdate(rotation=90, ha="center")
+    plt.legend()
+    
+    main_data.plot()
+   # plt.show()
+    
+fig = plt.figure()
+ax1 = plt.subplot2grid((5,4), (0,0), rowspan = 4, colspan = 4)
+ax1.plot(df.index, df.open)
+ax1.plot(df.index, df.high)
+ax1.plot(df.index, df.low)
+ax1.plot(df.index, df.close)
+plt.ylabel("Stock price")
+ax1.grid(True)
+plt.gcf().autofmt_xdate(rotation=90, ha="center")
+
+ax2 = plt.subplot2grid((5,4), (4,0), rowspan = 1, colspan = 4, sharex = ax1)
+ax2.bar(df.index, df.volume)
+plt.ylabel("Volume")
+ax2.grid(True)
+plt.gcf().autofmt_xdate(rotation=90, ha="center")
+
+ax1.xaxis.set_major_locator(mticker.MaxNLocator(10))
+ax1.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
 
 
 if __name__ == "__main__":
@@ -193,10 +249,14 @@ if __name__ == "__main__":
 
     # RSI 
     main_data["RSI"] = RSI(main_price)
-    plot_RSI(main_data.RSI)
+    #plot_RSI(main_data.RSI)
+    ax = main_data.RSI.plot()
+    ax.axhline(70, color = "r")
+    ax.axhline(30, color = "r")
     
     RSI_signal(main_data.RSI) 
     
+    plot_OCHL(df)
     
     
     plot_data(main_data)
