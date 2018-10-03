@@ -11,7 +11,7 @@ Markowitz Portfolio Optimization
 blog.quantopian.com/markowitz-portfolio-optimization-2
 """
 
-from __future__ import print_function
+#from __future__ import print_function
 
 #%matplotlib inline
 import numpy as np
