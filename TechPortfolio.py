@@ -24,15 +24,12 @@ from os import getcwd
 
 from Stock_extractor import *
 from BetaScript import *
-from Markowitz_example import *
+from Markowitz import *
+
 path = "C:\\cygwin64\\home\\Patrick\\Quantfolio"
 chdir(path)
 print(getcwd())
 
-def rand_weights(n):
-    " Produces n random weights that sum to 1 "
-    k = np.random.rand(n)
-    return (k / sum(k))
 
 tech_tickers = ["GOOG",
                 "FB",
@@ -54,4 +51,38 @@ df_ret = Log_returns(df_close)
 df_corr = df_ret.corr()
 sns.heatmap(df_corr)
 
+weights = rand_weights(n_stocks)
 
+# Generate random portfolio
+
+n_portfolios = 500
+means, stds = np.column_stack([
+        random_portfolio(df_ret.T) 
+        for _ in xrange(n_portfolios)
+        ])
+
+plt.plot(stds, means, 'o', markersize = 5)
+plt.xlabel("std")
+plt.ylabel("mean")
+plt.title("Mean and standard deviation of returns of randomly generated portfolios")
+
+
+weights, returns, risks, portfolios = optimal_portfolio(df_ret.T)
+plt.plot(stds, means, 'o')
+plt.xlabel("std")
+plt.ylabel("mean")
+plt.plot(risks, returns, "y-o")
+
+# Risk and returns
+risk_reward_df = pd.DataFrame([risks, returns], index = ["Std", "Mean"]).T
+
+# Portfolio Weights - find desired portfolio in risk_reward_df
+portfolio_n = 43
+pd.DataFrame(np.array(portfolios[portfolio_n]), index = df_ret.T.index, columns=["weights"])
+
+portfolio_n = 0
+pd.DataFrame(np.array(portfolios[portfolio_n]), index = df_ret.T.index, columns=["weights"])
+
+
+# log returns are additive
+np.e**(0.002*252)
