@@ -83,11 +83,11 @@ def Maximum_Drawdown(df_log, sort = True):
 
 
 # Covariance matrix
-df_log.corr()
+#df_log.corr()
 
 
 
-if __name == "__main":
+if __name__ == "__main__":
     """
     start = datetime.datetime(2015, 2 ,9)
     end = datetime.datetime(2017,5,24)
