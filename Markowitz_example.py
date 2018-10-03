@@ -12,7 +12,7 @@ blog.quantopian.com/markowitz-portfolio-optimization-2
 
 from __future__ import print_function
 
-%matplotlib inline
+#%matplotlib inline
 import numpy as np
 import matplotlib.pyplot as plt
 import cvxopt as opt
