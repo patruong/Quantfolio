@@ -42,7 +42,7 @@ def rand_weights(n):
     k = np.random.rand(n)
     return (k / sum(k))
 
-print rand_weights(n_assets)
+#print rand_weights(n_assets)
 
 def random_portfolio(returns):
     " Returns the mean and standard deviation for a random portfolio"
