@@ -55,7 +55,7 @@ weights = rand_weights(n_stocks)
 
 # Generate random portfolio
 
-n_portfolios = 500
+n_portfolios = 10000
 means, stds = np.column_stack([
         random_portfolio(df_ret.T) 
         for _ in xrange(n_portfolios)
