@@ -35,7 +35,6 @@ import backtrader as bt
 from datetime import datetime
 
 
-API_KEY = "XP8yo6H6i9vvj_Wh4guu"
 
 class firstStrategy(bt.Strategy):
 
