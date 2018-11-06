@@ -36,3 +36,22 @@ def GoldenCross(size):
                 if self.sma_50 < self.sma_200:
                     self.sell(size=size)
     return MyStrategy
+
+def RSI(size, period = 21, rsi_low = 30, rsi_high = 70):
+    size = size
+    period = period
+    rsi_low = rsi_low
+    rsi_high = rsi_high
+    class firstStrategy(bt.Strategy):
+    
+        def __init__(self):
+            self.rsi = bt.indicators.RSI_SMA(self.data.close, period=period)
+    
+        def next(self):
+            if not self.position:
+                if self.rsi < rsi_low:
+                    self.buy(size=size)
+            else:
+                if self.rsi > rsi_high:
+                    self.sell(size=size)
+    return firstStrategy
