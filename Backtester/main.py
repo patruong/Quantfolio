@@ -75,33 +75,32 @@ def Backtest(startCapital, strategy, data):
     
 if __name__ == "__main__":
     API_KEY = KEY.quandlAPI_KEY()
-    StartCap = 10000
+    
+    startcash = 10000
+    
     MyStrat = strat.BuyAndHold(size = 1)
     MyStrat = strat.RSI(size = 1, period = 21, rsi_low = 30, rsi_high = 70)
-    #Get Apple data from Yahoo Finance.
-    data = bt.feeds.Quandl(
-        dataname='GS',
-        fromdate = datetime(2013,8,5),
-        todate = datetime(2018,8,5),
-        buffered= True,
-        apikey=API_KEY
-        )
     
-    df = web.DataReader("GS", "quandl", "2013-08-05", "2018-08-05")
+    #Get data - quandl to bt.feed
+    #stock = "GS".
+    #data = bt.feeds.Quandl(
+    #    dataname= stock,
+    #    fromdate = datetime(2013,8,5),
+    #    todate = datetime(2018,8,5),
+    #    buffered= True,
+    #    apikey=API_KEY
+    #    )
+    
+    # Get data as dataframe
+    stock = "GS"
+    df = web.DataReader(stock, "quandl", "2013-08-05", "2018-08-05")
     
     # Rearrange data for bt.feeds readin of pandas-datareader format
     df = preprocess_pandasDatareader_quandl_df(df)
     
     datap = bt.feeds.PandasData(dataname = df)
-    Backtest(startCapital = 10000, strategy = MyStrat, data = data)
-    
-    datap = bt.feeds.PandasData(dataname = df)
-    Backtest(startCapital = 10000, strategy = MyStrat, data = datap)
-    
-    ###########################
-    #Variables
-    startcash = 10000
-    
+    #Backtest(startCapital = 10000, strategy = MyStrat, data = datap)
+
     #Create an instance of cerebro
     cerebro = bt.Cerebro()    
 
@@ -114,7 +113,6 @@ if __name__ == "__main__":
     # Set our desired cash start
     cerebro.broker.setcash(startcash)
     
-
     # Add the analyzers we are interested in
     cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name="ta")
     cerebro.addanalyzer(bt.analyzers.SQN, _name="sqn")
@@ -122,11 +120,7 @@ if __name__ == "__main__":
     # Run over everything
     strategies = cerebro.run()
     firstStrat = strategies[0]
-    
-    # print the analyzers
-    analysis.printTradeAnalysis(firstStrat.analyzers.ta.get_analysis())
-    analysis.printSQN(firstStrat.analyzers.sqn.get_analysis())
-    
+        
     #Get final portfolio Value
     portvalue = cerebro.broker.getvalue()
     
@@ -135,3 +129,8 @@ if __name__ == "__main__":
     
     #Finally plot the end results
     cerebro.plot(style='candlestick')
+    
+    # print the analyzers
+    analysis.printTradeAnalysis(firstStrat.analyzers.ta.get_analysis())
+    analysis.printSQN(firstStrat.analyzers.sqn.get_analysis())
+    analysis.printSQNref()
