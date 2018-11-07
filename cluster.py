@@ -16,7 +16,7 @@ import numpy as np
 
 # Data
 datasets = ["russel3000.csv", "test_set.csv"]
-df = pd.read_csv("russel3000.csv",  index_col = 0)
+df = pd.read_csv(datasets[1],  index_col = 0)
 df = df.dropna(axis=1) #removes all stocks with incomplete time series
 df = df.sample(30, axis=1)
 df = df.transpose()
@@ -25,6 +25,16 @@ df_pct = df_pct.dropna()
 df_log_ret = np.log(df) - np.log(df.shift(1))
 df_log_ret = df_log_ret.dropna()
 
+def sharpeRatio(returns, riskFree_rate = 0.01):
+    """
+    Sharpe ratio - risk-adjusted return for daily data
+    """
+    years = len(returns.columns)/252
+    rf = riskFree_rate*years
+    mu = returns.mean(axis=1)
+    std = returns.std(axis=1)
+    sharpe = (mu-rf)/std
+    return sharpe
 
 def plot_hierarchicalClustering(data, method = "complete", metric = "correlation"):
     Z = linkage(data, method = method, metric = metric)
