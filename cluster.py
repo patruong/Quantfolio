@@ -7,6 +7,13 @@ Created on Wed Nov 07 00:25:45 2018
 Todo:
     - get visual clustering to list, so can use for further processing
     - implement information ratio as risk-adjusted return
+
+1. implement multiple clustering procedures
+2. compute highest risk-adjusted return of x clusters, where x is the desired number of stocks in portfolio.
+(2.1) compute optimal number of x
+3. compute highest risk-adjusted return stock in x clusters
+4. calculate number of times stock is represented as best stock in cluster.
+5. use highest voted stocks, which never occur in same cluster as portfolio component OR use highest voted stocks as components.
 """
 
 import pandas as pd
