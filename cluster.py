@@ -6,6 +6,7 @@ Created on Wed Nov 07 00:25:45 2018
 
 Todo:
     - get visual clustering to list, so can use for further processing
+    - implement information ratio as risk-adjusted return
 """
 
 import pandas as pd
