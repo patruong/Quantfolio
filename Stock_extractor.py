@@ -16,10 +16,9 @@ from os.path import isfile, join
 from os import chdir
 from os import getcwd
 
-path = "C:\\cygwin64\\home\\Patrick\\Quantfolio"
-chdir(path)
-print(getcwd())
-
+#path = "C:\\cygwin64\\home\\Patrick\\Quantfolio"
+#chdir(path)
+#print(getcwd())
 
 def stock_extractor(tickers, start, end, sleep_time = 1):
     df_open = pd.DataFrame()
