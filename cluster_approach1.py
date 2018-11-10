@@ -19,6 +19,8 @@ DESCRIPTION OF APPROACH 1:
     5. Take stocks with n highest counts and (2nd) highest sharpe ratio
     
 Todo:
+    ADD MORE CLUSTERING METHODS.
+    
     - get visual clustering to list, so can use for further processing
     - implement information ratio as risk-adjusted return
 
@@ -28,6 +30,7 @@ Todo:
 3. compute highest risk-adjusted return stock in x clusters
 4. calculate number of times stock is represented as best stock in cluster.
 5. use highest voted stocks, which never occur in same cluster as portfolio component OR use highest voted stocks as components.
+
 """
 
 import pandas as pd
