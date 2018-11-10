@@ -39,8 +39,6 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 import numpy as np
 from sklearn.cluster import AgglomerativeClustering
 
-import plot_dendrogram
-
 
 def sharpeRatio(returns, riskFree_rate = 0.01):
     """
