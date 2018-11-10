@@ -4,6 +4,20 @@ Created on Wed Nov 07 00:25:45 2018
 
 @author: Patrick
 
+Useful links:
+    # Count variables in dataframe Variable counter
+    "https://stackoverflow.com/questions/29791785/python-pandas-add-a-column-to-my-dataframe-that-counts-a-variable"
+
+DESCRIPTION OF APPROACH 1:
+    1. Perform all clustering methods
+    2. Create df with sharpe and all clusters as columns
+    3. For each cluster in each cluster_method
+        - Find max OR
+        - Find min
+        - Append to count dataframe
+    4. Cont how many times a certain stock is in each cluster.
+    5. Take stocks with n highest counts and (2nd) highest sharpe ratio
+    
 Todo:
     - get visual clustering to list, so can use for further processing
     - implement information ratio as risk-adjusted return
@@ -108,26 +122,112 @@ def clusterHierarchical(df, n_clusters, distance, linkage):
         clustering = model.fit(df)
         return clustering
 
+def get_cluster(df, cluster_method):
+        """
+        df is the dataframe with cluster beloning and sharpe ratio.
+        cluster is the name of the cluster method in df e.g.
+        
+        df = df_res
+        cluster_method = df_res.columns[1]
+        
+        """
+        df_sub = df.iloc[0:,
+                    [df.columns.get_loc("Sharpe"),
+                     df.columns.get_loc(cluster_method)]]
+    return df_sub
+
+# Find max sharpe in each cluster for all different methods
+def findMax(df, criteria = "sharpe"):
+    """
+    Find the max of the criteria variable in each cluster
+    for all the methods (columns) in df with cluster belonging.
+ 
+    default critera is risk adjusted return or sharpe ratio - sharpe 
+        
+    df - dataframe with criteria and clusterings
+        
+    NOTE: all cluster methods should have same amount of clusters
+          last columns should be a clustering method
+              
+    DataFrame format:
+    - Cluster methods should be columns.
+    - Stocks should be indices.
+    """
+    # all cluster methods should give same amount of clusters
+    # last column should be cluster
+    clusters = len(df_res[df_res.columns[-1]].unique()) 
+    
+    df_count = pd.DataFrame()
+    for i in range(1,len(df.columns)):
+        # find the stock with highest sharpe for each cluster method
+        cluster_method = df.columns[i]
+        #cluster_n = 1
+        for cluster_n in range(clusters):
+            df_temp = df.loc[df[criteria] == df
+                       .loc[df[cluster_method] == cluster_n]
+                       [criteria].max()]
+            df_count = df_count.append(df_temp)
+    return df_count
+
+# Find max sharpe in each cluster for all different methods
+def findMin(df, criteria = "sharpe"):
+    """
+    Find the max of the criteria variable in each cluster
+    for all the methods (columns) in df with cluster belonging.
+ 
+    default critera is risk adjusted return or sharpe ratio - sharpe 
+        
+    df - dataframe with criteria and clusterings
+        
+    NOTE: all cluster methods should have same amount of clusters
+          last columns should be a clustering method
+              
+    DataFrame format:
+    - Cluster methods should be columns.
+    - Stocks should be indices.
+    """
+    # all cluster methods should give same amount of clusters
+    # last column should be cluster
+    clusters = len(df_res[df_res.columns[-1]].unique()) 
+    
+    df_count = pd.DataFrame()
+    for i in range(1,len(df.columns)):
+        # find the stock with highest sharpe for each cluster method
+        cluster_method = df.columns[i]
+        #cluster_n = 1
+        for cluster_n in range(clusters):
+            df_temp = df.loc[df[criteria] == df
+                       .loc[df[cluster_method] == cluster_n]
+                       [criteria].min()]
+            df_count = df_count.append(df_temp)
+    return df_count
+    
+
 if __name__=="__main__":    
     # Data Pre-processing
     datasets = ["russel3000.csv", "test_set.csv"]
     df = pd.read_csv(datasets[0],  index_col = 0)
     df = df.dropna(axis=1) #removes all stocks with incomplete time series
     df = df.sample(300, axis=1)
-    df = df.transpose()
+    
     df_pct = df.pct_change()
-    df_pct = df_pct.dropna(axis = 0)
+    df_pct = df_pct.transpose()
+    df_pct = df_pct.dropna(axis = 1)
     df_log_ret = np.log(df) - np.log(df.shift(1))
-    df_log_ret = df_log_ret.dropna(axis = 0)
+    df_log_ret = df_log_ret.transpose()
+    df_log_ret = df_log_ret.dropna(axis = 1)
 
     df_res = pd.DataFrame()
-    df_res["Sharpe"] = sharpeRatio(df_log_ret)
+    df_res["sharpe"] = sharpeRatio(df_log_ret)
+    
     
     clusters = 30
+    portfolio_components = clusters
+    # Perform the different hierarchical clustering and append cluster belonging to df
     linkage = ["ward", "complete", "average"] # chaining phenomenon in single
     distance_measure = ["correlation", "cosine"]
-
     
+    # append the cluster-belongings of each type of Hierarchical clustering to df_res
     for link in linkage:
         if link == "ward":
             dist = "euclidean"
@@ -146,4 +246,17 @@ if __name__=="__main__":
             col_name = "HC_"+link+"_"+dist
             df_res[col_name] = np.transpose(clustering.labels_)
     
+    df_count = findMax(df_res, criteria = "sharpe")
+    df_count = findMin(df_res, criteria = "sharpe")
             
+    
+    # Count variables, sort, drop duplicates and take top votes stocks as components
+    # Count variables in dataframe Variable counter
+    "https://stackoverflow.com/questions/29791785/python-pandas-add-a-column-to-my-dataframe-that-counts-a-variable"
+    df_count["count"] = df_count.groupby(df_count.index)["sharpe"].transform("count")
+    df_count.sort_values(["count", "sharpe"], ascending = [False, False], inplace = True)
+    df_count.drop_duplicates(inplace = True)
+    stocks = df_count.head(portfolio_components).index
+    
+    df_stocks = df_log_ret[df_log_ret.index.isin(stocks)] #top 30 stocks
+    df_stocks.transpose().cumsum().plot()
