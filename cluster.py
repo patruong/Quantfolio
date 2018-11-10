@@ -17,21 +17,13 @@ Todo:
 """
 
 import pandas as pd
-
 from matplotlib import pyplot as plt
 from scipy.cluster.hierarchy import dendrogram, linkage
 import numpy as np
+from sklearn.cluster import AgglomerativeClustering
 
-# Data
-datasets = ["russel3000.csv", "test_set.csv"]
-df = pd.read_csv(datasets[1],  index_col = 0)
-df = df.dropna(axis=1) #removes all stocks with incomplete time series
-df = df.sample(30, axis=1)
-df = df.transpose()
-df_pct = df.pct_change()
-df_pct = df_pct.dropna()
-df_log_ret = np.log(df) - np.log(df.shift(1))
-df_log_ret = df_log_ret.dropna()
+import plot_dendrogram
+
 
 def sharpeRatio(returns, riskFree_rate = 0.01):
     """
@@ -44,6 +36,33 @@ def sharpeRatio(returns, riskFree_rate = 0.01):
     sharpe = (mu-rf)/std
     return sharpe
 
+
+def plot_dendrogram(model, **kwargs):
+    # Authors: Mathew Kallada
+    # License: BSD 3 clause
+    """
+    =========================================
+    Plot Hierarachical Clustering Dendrogram 
+    =========================================
+    This example plots the corresponding dendrogram of a hierarchical clustering
+    using AgglomerativeClustering and the dendrogram method available in scipy.
+    """
+    # Children of hierarchical clustering
+    children = model.children_
+
+    # Distances between each pair of children
+    # Since we don't have this information, we can use a uniform one for plotting
+    distance = np.arange(children.shape[0])
+
+    # The number of observations contained in each cluster level
+    no_of_observations = np.arange(2, children.shape[0]+2)
+
+    # Create linkage matrix and then plot the dendrogram
+    linkage_matrix = np.column_stack([children, distance, no_of_observations]).astype(float)
+
+    # Plot the corresponding dendrogram
+    dendrogram(linkage_matrix, **kwargs)
+               
 def plot_hierarchicalClustering(data, method = "complete", metric = "correlation"):
     Z = linkage(data, method = method, metric = metric)
     
@@ -80,3 +99,51 @@ def plot_truncHierarchicalClustering(data, method = "complete", metric = "correl
     )
     plt.show()
     
+
+
+def clusterHierarchical(df, n_clusters, distance, linkage):
+        model = AgglomerativeClustering(n_clusters = n_clusters,
+                                     affinity = distance,
+                                     linkage = linkage)
+        clustering = model.fit(df)
+        return clustering
+
+if __name__=="__main__":    
+    # Data Pre-processing
+    datasets = ["russel3000.csv", "test_set.csv"]
+    df = pd.read_csv(datasets[0],  index_col = 0)
+    df = df.dropna(axis=1) #removes all stocks with incomplete time series
+    df = df.sample(300, axis=1)
+    df = df.transpose()
+    df_pct = df.pct_change()
+    df_pct = df_pct.dropna(axis = 0)
+    df_log_ret = np.log(df) - np.log(df.shift(1))
+    df_log_ret = df_log_ret.dropna(axis = 0)
+
+    df_res = pd.DataFrame()
+    df_res["Sharpe"] = sharpeRatio(df_log_ret)
+    
+    clusters = 30
+    linkage = ["ward", "complete", "average"] # chaining phenomenon in single
+    distance_measure = ["correlation", "cosine"]
+
+    
+    for link in linkage:
+        if link == "ward":
+            dist = "euclidean"
+            clustering = clusterHierarchical(df = df_log_ret,
+                                             n_clusters = clusters,
+                                             distance = dist,
+                                             linkage = link)
+            col_name = "HC_"+link+"_"+dist
+            df_res[col_name] = np.transpose(clustering.labels_)
+            continue
+        for dist in distance_measure:
+            clustering = clusterHierarchical(df = df_log_ret,
+                                             n_clusters = clusters,
+                                             distance = dist,
+                                             linkage = link)
+            col_name = "HC_"+link+"_"+dist
+            df_res[col_name] = np.transpose(clustering.labels_)
+    
+            
