@@ -3,6 +3,20 @@
 Created on Sun Nov 11 00:43:13 2018
 
 @author: Patrick
+
+Clustering Approach 2
+    - Cluster stocks
+    - For each cluster find stock with highest(max) and lowest(min) sharpe.
+    - Append to count dataframe
+        - max, max_stock, min, min_stock, cluster
+    (- Reiterade for all clustering algorithms)
+
+The idea is that each clusters have stocks that behave similarily within,
+but dissimilar between clusters. We then want to short the worst case 
+in each cluster and long best case, to get a market neutral strategy.
+
+
+
 """
 
 
