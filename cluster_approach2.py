@@ -74,13 +74,19 @@ def clusterHierarchical(df, n_clusters, distance, linkage):
         clustering = model.fit(df)
         return clustering
 
-
+def addCluster(df, clustering):
+        """
+        Function takes dataframe and adds cluster column
+        """
+        df["cluster"] = clustering.labels_
+        return df
+    
 if __name__=="__main__":    
     # Data Pre-processing
     datasets = ["russel3000.csv", "test_set.csv"]
     df = pd.read_csv(datasets[0],  index_col = 0)
     df = df.dropna(axis=1) #removes all stocks with incomplete time series
-    df = df.sample(100, axis=1)
+    df = df.sample(10, axis=1)
     
     df_pct = df.pct_change()
     df_pct = df_pct.transpose()
@@ -89,6 +95,7 @@ if __name__=="__main__":
     df_log_ret = df_log_ret.transpose()
     df_log_ret = df_log_ret.dropna(axis = 1)
 
+    # Create a results df
     df_res = pd.DataFrame()
     df_res["sharpe"] = sharpeRatio(df_log_ret)
     
@@ -96,7 +103,7 @@ if __name__=="__main__":
     # Clustering #
     ##############
     
-    clusters = 15
+    clusters = 5
     portfolio_components = clusters
 
     linkage = "complete"
@@ -107,38 +114,66 @@ if __name__=="__main__":
                                      n_clusters = clusters,
                                      distance = distance_measure,
                                      linkage = linkage)
-    df_res["cluster"] = clustering.labels_
     
+    df_res = addCluster(df_res, clustering)
     
     ####################################
     # Find min and max of each cluster #
     ####################################
     
-    clusters = len(df_res[df_res.columns[-1]].unique()) 
-    criteria = "sharpe"
-    
-    df_group = pd.DataFrame(columns=["cluster", "max", "min"])
-    for i in range(clusters):
-            
-        group = i
-        group_max = df_res.loc[df_res["cluster"] == group].max()["sharpe"]
-        group_max_stock = df_res[df_res["sharpe"] == df_res.loc[df_res["cluster"] == group].max()["sharpe"]].index[0]
-        group_min = df_res.loc[df_res["cluster"] == group].min()["sharpe"]
-        group_min_stock = df_res[df_res["sharpe"] == df_res.loc[df_res["cluster"] == group].min()["sharpe"]].index[0]
-        df_group = df_group.append({"cluster": int(group), 
-                                    "max":group_max, 
-                                    "min":group_min,
-                                    "TICKER_max":group_max_stock,
-                                    "TICKER_min":group_min_stock}, ignore_index = True)
-    
-    #drop singleton clusters
-    df_group = df_group[df_group["min"] != df_group["max"]]
-    
+    def ClusterMinMax(df, drop_singletons == True):
+        """
+        df - input from addCluster
+        drop_singletons - drop singleton clusters from df.
+        
+        NOT FINISHED
+        """
+        clusters = len(df_res[df_res.columns[-1]].unique()) 
+        criteria = "sharpe"
+        
+        df_group = pd.DataFrame(columns=["cluster", "max", "min"])
+        for i in range(clusters):
+                
+            group = i
+            group_max = df_res.loc[df_res["cluster"] == group].max()["sharpe"]
+            group_max_stock = df_res[df_res["sharpe"] == df_res.loc[df_res["cluster"] == group].max()["sharpe"]].index[0]
+            group_min = df_res.loc[df_res["cluster"] == group].min()["sharpe"]
+            group_min_stock = df_res[df_res["sharpe"] == df_res.loc[df_res["cluster"] == group].min()["sharpe"]].index[0]
+            df_group = df_group.append({"cluster": int(group), 
+                                        "max":group_max, 
+                                        "min":group_min,
+                                        "TICKER_max":group_max_stock,
+                                        "TICKER_min":group_min_stock}, ignore_index = True)
+        if drop_singletons == True:        
+            #drop singleton clusters
+            df_group = df_group[df_group["min"] != df_group["max"]]
+        return df_group
     #######################################
     # Calculate distance between clusters #
     #######################################
+    """
+    Look in to mahalanobis distance clustering of stocks.
+    """
+    import seaborn as sns; sns.set(color_codes = True)
+    g = sns.clustermap(df_log_ret.transpose(), metric = "correlation")
     
+    # Give sns.clustermap a pre-computed distance matrix
+    #https://stackoverflow.com/questions/38705359/how-to-give-sns-clustermap-a-precomputed-distance-matrix
     
+    import pandas as pd, seaborn as sns
+    import scipy.spatial as sp, scipy.cluster.hierarchy as hc
+    from sklearn.datasets import load_iris
+    sns.set(font="monospace")
+    
+    iris = load_iris()
+    X, y = iris.data, iris.target
+    DF = pd.DataFrame(X, index = ["iris_%d" % (i) for i in range(X.shape[0])], columns = iris.feature_names)
+    
+    DF_corr = DF.T.corr()
+    DF_dism = 1 - DF_corr   # distance matrix
+    linkage = hc.linkage(sp.distance.squareform(DF_dism), method='average')
+    sns.clustermap(DF_dism, row_linkage=linkage, col_linkage=linkage)
+        
     ############
     # Plotting #
     ############
