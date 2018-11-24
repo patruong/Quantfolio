@@ -19,3 +19,10 @@ Softwares:
 
 Reddit:
 -https://www.reddit.com/r/options/comments/6nunx7/explaining_an_easy_system_to_make_excess_returns/
+
+
+Prioritized Project components:
+- Portfolio Component Selection
+- Portfolio Optimization
+- Backtesting
+- Broker connection
