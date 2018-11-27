@@ -86,7 +86,7 @@ if __name__=="__main__":
     datasets = ["russel3000.csv", "test_set.csv"]
     df = pd.read_csv(datasets[0],  index_col = 0)
     df = df.dropna(axis=1) #removes all stocks with incomplete time series
-    df = df.sample(10, axis=1)
+    df = df.sample(100, axis=1)
     
     df_pct = df.pct_change()
     df_pct = df_pct.transpose()
